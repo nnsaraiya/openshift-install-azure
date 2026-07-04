@@ -1,0 +1,27 @@
+---
+# Cluster identity
+cluster_name: ocp-install-azure
+base_domain: sp58l.azure.redhatworkshops.io
+azure_region: eastasia
+
+# Existing Azure resource group that holds the public DNS zone for base_domain.
+# openshift-install creates its own separate resource group for cluster infra.
+base_domain_resource_group: openenv-sp58l
+
+# Local paths (never copied into git — read at render time)
+pull_secret_path: "{{ lookup('env', 'HOME') }}/pull-secret.json"
+ssh_public_key_path: "{{ lookup('env', 'HOME') }}/.ssh/id_ed25519_nnsaraiya.pub"
+
+# openshift-install / oc client version to download
+openshift_install_version: "4.22.2"
+openshift_install_os: mac-arm64
+
+# Cluster topology (openshift-install Azure defaults)
+control_plane_replicas: 3
+control_plane_vm_size: Standard_D8s_v3
+compute_replicas: 3
+compute_vm_size: Standard_D4s_v3
+
+# Local working directories (gitignored)
+bin_dir: "{{ playbook_dir }}/../bin"
+install_dir: "{{ playbook_dir }}/../clusters/{{ cluster_name }}"

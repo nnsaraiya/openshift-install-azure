@@ -1,0 +1,13 @@
+---
+- name: Ensure cluster install directory exists
+  ansible.builtin.file:
+    path: "{{ install_dir }}"
+    state: directory
+    mode: "0700"
+
+- name: Render install-config.yaml from template (always fresh — template is the source of truth)
+  ansible.builtin.template:
+    src: install-config.yaml.j2
+    dest: "{{ install_dir }}/install-config.yaml"
+    mode: "0600"
+  no_log: true

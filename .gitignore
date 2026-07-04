@@ -1,0 +1,9 @@
+bin/*
+!bin/.gitkeep
+
+clusters/*/*
+!clusters/*/.gitkeep
+
+.vault_pass*
+*.retry
+.DS_Store

@@ -1,0 +1,6 @@
+---
+- name: Install OpenShift on Azure (IPI)
+  hosts: local
+  gather_facts: false
+  roles:
+    - openshift_azure

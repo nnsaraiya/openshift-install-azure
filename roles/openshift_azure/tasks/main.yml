@@ -1,0 +1,20 @@
+---
+- name: Download openshift-install and oc clients
+  ansible.builtin.import_tasks: download_binaries.yml
+  tags: [tools]
+
+- name: Write Azure service principal credentials
+  ansible.builtin.import_tasks: azure_credentials.yml
+  tags: [config]
+
+- name: Render install-config.yaml
+  ansible.builtin.import_tasks: install_config.yml
+  tags: [config]
+
+- name: Provision the cluster
+  ansible.builtin.import_tasks: provision.yml
+  tags: [provision, never]
+
+- name: Destroy the cluster
+  ansible.builtin.import_tasks: destroy.yml
+  tags: [destroy, never]

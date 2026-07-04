@@ -1,0 +1,67 @@
+---
+- name: Ensure bin directory exists
+  ansible.builtin.file:
+    path: "{{ bin_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Check whether openshift-install is already downloaded at the target version
+  ansible.builtin.command: "{{ bin_dir }}/openshift-install version"
+  register: _installed_version
+  changed_when: false
+  failed_when: false
+
+- name: Download and install client tarballs
+  when: openshift_install_version not in (_installed_version.stdout | default(''))
+  block:
+    - name: Fetch sha256sum manifest for the target release
+      ansible.builtin.get_url:
+        url: "{{ mirror_base_url }}/{{ openshift_install_version }}/sha256sum.txt"
+        dest: "/tmp/openshift-clients-{{ openshift_install_version }}.sha256sum.txt"
+        mode: "0644"
+
+    - name: Look up expected checksum for each tarball
+      ansible.builtin.shell: >
+        set -o pipefail;
+        grep '{{ item }}-{{ openshift_install_os }}-{{ openshift_install_version }}.tar.gz$'
+        /tmp/openshift-clients-{{ openshift_install_version }}.sha256sum.txt | awk '{print $1}'
+      args:
+        executable: /bin/bash
+      loop:
+        - openshift-install
+        - openshift-client
+      register: _checksum_lookup
+      changed_when: false
+
+    - name: Download tarballs with checksum verification
+      ansible.builtin.get_url:
+        url: "{{ mirror_base_url }}/{{ openshift_install_version }}/{{ item.item }}-{{ openshift_install_os }}-{{ openshift_install_version }}.tar.gz"
+        dest: "/tmp/{{ item.item }}-{{ openshift_install_version }}.tar.gz"
+        checksum: "sha256:{{ item.stdout }}"
+        mode: "0644"
+      loop: "{{ _checksum_lookup.results }}"
+      register: _downloaded
+
+    - name: Extract tarballs into bin/
+      # macOS ships bsdtar, which ansible.builtin.unarchive rejects (it requires GNU tar).
+      # Plain `tar -xzf` handles these simple gzip tarballs fine under bsdtar too.
+      ansible.builtin.command: "tar -xzf /tmp/{{ item.item }}-{{ openshift_install_version }}.tar.gz -C {{ bin_dir }}"
+      loop: "{{ _checksum_lookup.results }}"
+
+    - name: Ensure extracted binaries are executable
+      ansible.builtin.file:
+        path: "{{ bin_dir }}/{{ item }}"
+        mode: "0755"
+      loop:
+        - openshift-install
+        - oc
+        - kubectl
+
+- name: Report installed version
+  ansible.builtin.command: "{{ bin_dir }}/openshift-install version"
+  register: _final_version
+  changed_when: false
+
+- name: Show installer version
+  ansible.builtin.debug:
+    var: _final_version.stdout_lines

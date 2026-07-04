@@ -1,0 +1,4 @@
+---
+openshift_install_version: "4.22.2"
+openshift_install_os: mac-arm64
+mirror_base_url: https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp

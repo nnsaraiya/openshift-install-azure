@@ -1,0 +1,21 @@
+---
+- name: Destroy OpenShift cluster on Azure
+  hosts: local
+  gather_facts: false
+  tasks:
+    - name: Confirm destructive action
+      ansible.builtin.pause:
+        prompt: >-
+          This will PERMANENTLY destroy the '{{ cluster_name }}' cluster and all its Azure
+          resources. Type the cluster name exactly to confirm
+      register: _confirmation
+
+    - name: Abort unless confirmation matches cluster name
+      ansible.builtin.fail:
+        msg: "Confirmation '{{ _confirmation.user_input }}' did not match cluster name '{{ cluster_name }}'. Aborting."
+      when: _confirmation.user_input != cluster_name
+
+    - name: Run destroy role tasks
+      ansible.builtin.import_role:
+        name: openshift_azure
+        tasks_from: destroy.yml
