@@ -11,6 +11,10 @@
   ansible.builtin.import_tasks: install_config.yml
   tags: [config]
 
+- name: Validate Azure credentials, DNS zone, and install-config (no cluster created)
+  ansible.builtin.import_tasks: validate.yml
+  tags: [validate, never]
+
 - name: Provision the cluster
   ansible.builtin.import_tasks: provision.yml
   tags: [provision, never]
@@ -18,3 +22,6 @@
 - name: Destroy the cluster
   ansible.builtin.import_tasks: destroy.yml
   tags: [destroy, never]
+
+- name: Clean local workspace / downloaded binaries
+  ansible.builtin.import_tasks: clean.yml

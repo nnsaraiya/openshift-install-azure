@@ -37,29 +37,30 @@ generated/secret runtime artifacts (`bin/`, `clusters/*/`) are gitignored.
 
 ## Usage
 
-Everything runs via tags, so the expensive/billed step is always explicit and opt-in:
+Run `make help` for the full list. The expensive/billed step is always explicit and opt-in:
 
 ```sh
-# Download the openshift-install and oc clients into ./bin
-ansible-playbook playbooks/install-cluster.yml --tags tools
+make validate    # Azure SP creds, DNS zone, install-config — no cluster created
+make install     # download tools, render config, provision the cluster (~40 min, real cost)
+make destroy     # tear the cluster down (irreversible!)
+make clean       # remove the cluster workspace dir (keeps downloaded binaries)
+make clean-all   # remove the workspace AND downloaded openshift-install/oc binaries
+```
 
-# Write Azure SP credentials (~/.azure/osServicePrincipal.json) and render install-config.yaml
-ansible-playbook playbooks/install-cluster.yml --tags config
+Equivalent raw `ansible-playbook` commands (what the Makefile targets wrap), useful if you
+want to run an individual tag:
 
-# Actually provision the cluster on Azure (~40 min, incurs real cost)
-ansible-playbook playbooks/install-cluster.yml --tags provision
+```sh
+ansible-playbook playbooks/install-cluster.yml --tags tools     # download clients into ./bin
+ansible-playbook playbooks/install-cluster.yml --tags config    # write SP creds + render install-config.yaml
+ansible-playbook playbooks/install-cluster.yml --tags provision # actually create the cluster
+ansible-playbook playbooks/destroy-cluster.yml                  # tear down (prompts for confirmation)
 ```
 
 Cluster credentials land in `clusters/<cluster_name>/auth/` (`kubeconfig`,
-`kubeadmin-password`) once `provision` completes. That directory is gitignored.
+`kubeadmin-password`) once `install`/`provision` completes. That directory is gitignored.
 
-### Tearing down
-
-```sh
-ansible-playbook playbooks/destroy-cluster.yml
-```
-
-You'll be prompted to type the cluster name to confirm before anything is destroyed.
+`make destroy` prompts you to type the cluster name to confirm before anything is destroyed.
 
 ## Notes
 
@@ -67,4 +68,4 @@ You'll be prompted to type the cluster name to confirm before anything is destro
   template in git is the source of truth, the rendered copy under `clusters/<name>/` is
   local install-time state consumed by the installer.
 - If a `provision` run fails partway through, either fix the issue and re-run
-  `--tags provision`, or `rm -rf clusters/<cluster_name>/*` and start over from `config`.
+  `make install`, or `make clean` and start over.

@@ -9,4 +9,4 @@
 
 - name: Show installer output
   ansible.builtin.debug:
-    var: _create_cluster.stdout_lines
+    var: _create_cluster.stderr_lines

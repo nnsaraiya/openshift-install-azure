@@ -6,4 +6,4 @@
 
 - name: Show destroyer output
   ansible.builtin.debug:
-    var: _destroy_cluster.stdout_lines
+    var: _destroy_cluster.stderr_lines

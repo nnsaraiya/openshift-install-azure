@@ -1,0 +1,14 @@
+---
+- name: Remove cluster install-time workspace (state, manifests, auth) but keep bin/
+  ansible.builtin.shell: "find {{ install_dir }} -mindepth 1 ! -name '.gitkeep' -delete"
+  args:
+    executable: /bin/bash
+  tags: [clean, never]
+  changed_when: true
+
+- name: Remove downloaded openshift-install/oc binaries
+  ansible.builtin.shell: "find {{ bin_dir }} -mindepth 1 ! -name '.gitkeep' -delete"
+  args:
+    executable: /bin/bash
+  tags: [clean-bins, never]
+  changed_when: true
